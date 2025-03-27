@@ -34,7 +34,7 @@ A secure and user-friendly file management system designed to provide robust fil
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/secure-file-management.git
+git clone https://github.com/rajneesh5566/SecureFileManager
 cd secure-file-management
 ```
 

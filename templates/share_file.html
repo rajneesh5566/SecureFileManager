@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Share File - Secure File Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-share me-2"></i>Share File</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <p class="mb-0"><strong>Sharing:</strong> {{ file.original_filename }}</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('file_manager.share_file', file_id=file.id) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">{{ form.username.label }}</label>
+                        {{ form.username(class="form-control", id="username", placeholder="Enter username") }}
+                        {% for error in form.username.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="permissions" class="form-label">{{ form.permissions.label }}</label>
+                        {{ form.permissions(class="form-select", id="permissions") }}
+                        {% for error in form.permissions.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        
+                        <div class="form-text">
+                            <strong>Read Only:</strong> User can view and download the file<br>
+                            <strong>Read & Edit:</strong> User can view, download, and make changes
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('file_manager.file_details', file_id=file.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if shared_with %}
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Currently Shared With</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for user, share in shared_with %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">{{ user.username }}</span>
+                                <small class="d-block text-muted">{{ user.email }}</small>
+                                <span class="badge {% if share.permissions == 'read' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ share.permissions|capitalize }}
+                                </span>
+                            </div>
+                            <form method="POST" action="{{ url_for('file_manager.unshare_file', file_id=file.id, user_id=user.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-x-circle"></i> Revoke
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

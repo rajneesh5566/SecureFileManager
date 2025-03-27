@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Secure File Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center my-5">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">Welcome to Secure File Management System</h1>
+            <p class="lead">A secure system for storing, sharing, and managing your files with encryption and access control.</p>
+            
+            <div class="mt-5">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('file_manager.dashboard') }}" class="btn btn-primary btn-lg mx-2">
+                        <i class="bi bi-house-fill me-2"></i>Go to Dashboard
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg mx-2">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary btn-lg mx-2">
+                        <i class="bi bi-person-plus me-2"></i>Register
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-lock-fill text-primary display-4 my-3"></i>
+                    <h3 class="card-title">Secure Storage</h3>
+                    <p class="card-text">All files are encrypted using AES-256 encryption to keep your data secure.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-check-fill text-primary display-4 my-3"></i>
+                    <h3 class="card-title">Two-Factor Authentication</h3>
+                    <p class="card-text">Add an extra layer of security with time-based one-time passwords (TOTP).</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-share-fill text-primary display-4 my-3"></i>
+                    <h3 class="card-title">Controlled Sharing</h3>
+                    <p class="card-text">Share files securely with other users with granular permission controls.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

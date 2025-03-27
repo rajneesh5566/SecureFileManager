@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Secure File Management System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h3 mb-0">Admin Dashboard</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-people-fill text-primary me-2"></i>Users</h5>
+                <p class="display-4">{{ users|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-file-earmark-fill text-primary me-2"></i>Files</h5>
+                <p class="display-4">{{ files|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Malware Detected</h5>
+                <p class="display-4">{{ files|selectattr('is_malware_detected', 'eq', true)|list|length }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>User Management</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>2FA</th>
+                                <th>Created</th>
+                                <th>Last Login</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="badge {% if user.role == 'admin' %}bg-danger{% else %}bg-primary{% endif %}">
+                                        {{ user.role }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if user.is_2fa_enabled %}
+                                    <span class="badge bg-success">Enabled</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Disabled</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    {% if user.last_login %}
+                                    {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                    Never
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-activity me-2"></i>Recent Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                    {% for log in logs %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                {% if log.action == 'upload' %}
+                                    <i class="bi bi-upload text-primary me-1"></i>
+                                {% elif log.action == 'download' %}
+                                    <i class="bi bi-download text-success me-1"></i>
+                                {% elif log.action == 'view' %}
+                                    <i class="bi bi-eye text-info me-1"></i>
+                                {% elif log.action == 'share' %}
+                                    <i class="bi bi-share text-warning me-1"></i>
+                                {% elif log.action == 'delete' %}
+                                    <i class="bi bi-trash text-danger me-1"></i>
+                                {% else %}
+                                    <i class="bi bi-activity me-1"></i>
+                                {% endif %}
+                                {{ log.action|capitalize }}
+                            </h6>
+                            <small>{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1">
+                            User: <strong>{{ log.user.username }}</strong>
+                            {% if log.file %}
+                            | File: <strong>{{ log.file.original_filename }}</strong>
+                            {% endif %}
+                        </p>
+                        <small>IP: {{ log.ip_address }} | Agent: {{ log.user_agent }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-fill me-2"></i>File Management</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Owner</th>
+                                <th>Uploaded</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in files %}
+                            <tr>
+                                <td>{{ file.original_filename }}</td>
+                                <td>{{ file.file_type }}</td>
+                                <td>{{ (file.file_size / 1024)|round(1) }} KB</td>
+                                <td>{{ file.owner.username }}</td>
+                                <td>{{ file.upload_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if file.is_malware_detected %}
+                                    <span class="badge bg-danger">Malware Detected</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Clean</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('file_manager.file_details', file_id=file.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

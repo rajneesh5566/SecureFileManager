@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authentication - Secure File Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Two-Factor Authentication</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-shield-check display-1 text-primary"></i>
+                    <p class="lead mt-3">Please enter the verification code from your authenticator app</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('auth.verify_2fa') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="otp_code" class="form-label">{{ form.otp_code.label }}</label>
+                        {{ form.otp_code(class="form-control form-control-lg text-center", id="otp_code", placeholder="000000", autocomplete="off", autofocus=true) }}
+                        {% for error in form.otp_code.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('auth.login') }}">Back to login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Format and auto-submit OTP input
+    document.addEventListener('DOMContentLoaded', function() {
+        const otpInput = document.getElementById('otp_code');
+        
+        otpInput.addEventListener('input', function(e) {
+            // Remove non-digit characters
+            this.value = this.value.replace(/\D/g, '');
+            
+            // Limit to 6 digits
+            if (this.value.length > 6) {
+                this.value = this.value.slice(0, 6);
+            }
+            
+            // Auto-submit when 6 digits are entered
+            if (this.value.length === 6) {
+                setTimeout(() => {
+                    this.form.submit();
+                }, 300);
+            }
+        });
+    });
+</script>
+{% endblock %}

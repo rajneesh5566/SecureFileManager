@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Upload File - Secure File Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-upload me-2"></i>Upload File</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('file_manager.upload_file') }}" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        <label for="file" class="form-label">{{ form.file.label }}</label>
+                        <div class="input-group">
+                            {{ form.file(class="form-control", id="file") }}
+                        </div>
+                        {% for error in form.file.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            Allowed file types: txt, pdf, png, jpg, jpeg, doc, docx, xls, xlsx, ppt, pptx
+                        </div>
+                        <div class="form-text">
+                            Maximum file size: 16MB
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">{{ form.notes.label }} (Optional)</label>
+                        {{ form.notes(class="form-control", id="notes", rows="3", placeholder="Add any notes about this file") }}
+                        {% for error in form.notes.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        <strong>Security Information:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Your file will be encrypted using AES-256 encryption.</li>
+                            <li>All uploaded files are scanned for malware.</li>
+                            <li>File metadata is stored securely in our database.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('file_manager.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Preview file name when selected
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file');
+        fileInput.addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file selected';
+            const fileSize = e.target.files[0]?.size || 0;
+            
+            // Check if file size exceeds limit
+            if (fileSize > 16 * 1024 * 1024) {
+                alert('File is too large. Maximum size is 16MB.');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Show file name in custom text
+            const fileSizeFormatted = (fileSize / 1024).toFixed(1) + ' KB';
+            document.querySelector('.form-text').innerHTML = `Selected: ${fileName} (${fileSizeFormatted})`;
+        });
+    });
+</script>
+{% endblock %}

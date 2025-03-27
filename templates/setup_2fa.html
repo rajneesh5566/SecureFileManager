@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Two-Factor Authentication - Secure File Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-shield-plus me-2"></i>Setup Two-Factor Authentication</h4>
+            </div>
+            <div class="card-body">
+                {% if current_user.is_2fa_enabled %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-shield-check me-2"></i>Two-factor authentication is currently <strong>enabled</strong> for your account.
+                    </div>
+                    
+                    <p>If you want to disable two-factor authentication, please click the button below:</p>
+                    
+                    <form action="{{ url_for('auth.disable_2fa') }}" method="POST" class="mt-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to disable two-factor authentication? This will reduce the security of your account.')">
+                                <i class="bi bi-shield-slash me-2"></i>Disable Two-Factor Authentication
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Two-factor authentication is currently <strong>disabled</strong> for your account.
+                    </div>
+                    
+                    <p>Follow these steps to enable two-factor authentication:</p>
+                    
+                    <ol class="mb-4">
+                        <li>Install an authenticator app like Google Authenticator or Authy on your mobile device.</li>
+                        <li>Scan the QR code below with your authenticator app.</li>
+                        <li>Enter the 6-digit verification code from your authenticator app to verify setup.</li>
+                    </ol>
+                    
+                    <div class="text-center mb-4">
+                        <div class="card mb-3 mx-auto" style="max-width: 250px;">
+                            <div class="card-body p-2">
+                                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid">
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted">Can't scan the QR code? Enter this code manually:</p>
+                        <div class="input-group mb-3" style="max-width: 300px; margin: 0 auto;">
+                            <input type="text" class="form-control text-center" value="{{ secret }}" readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="copyButton" onclick="copySecret()">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('auth.setup_2fa') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="otp_code" class="form-label">{{ form.otp_code.label }}</label>
+                            {{ form.otp_code(class="form-control form-control-lg text-center", id="otp_code", placeholder="000000", autocomplete="off") }}
+                            {% for error in form.otp_code.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Function to copy the secret key to clipboard
+    function copySecret() {
+        const secretField = document.querySelector('.input-group input');
+        secretField.select();
+        document.execCommand('copy');
+        
+        // Show copied tooltip
+        const copyButton = document.getElementById('copyButton');
+        const originalHTML = copyButton.innerHTML;
+        copyButton.innerHTML = '<i class="bi bi-check"></i>';
+        copyButton.classList.add('btn-success');
+        copyButton.classList.remove('btn-outline-secondary');
+        
+        setTimeout(function() {
+            copyButton.innerHTML = originalHTML;
+            copyButton.classList.remove('btn-success');
+            copyButton.classList.add('btn-outline-secondary');
+        }, 2000);
+    }
+    
+    // Format OTP input
+    document.addEventListener('DOMContentLoaded', function() {
+        const otpInput = document.getElementById('otp_code');
+        if (otpInput) {
+            otpInput.addEventListener('input', function(e) {
+                // Remove non-digit characters
+                this.value = this.value.replace(/\D/g, '');
+                
+                // Limit to 6 digits
+                if (this.value.length > 6) {
+                    this.value = this.value.slice(0, 6);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
